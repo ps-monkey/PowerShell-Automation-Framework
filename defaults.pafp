@@ -1,0 +1,378 @@
+{
+    "style_xlsx":  {
+                       "CellAddress":  "A1"
+                   },
+    "style_html":  {
+                       "isDefault":  "$true",
+                       "h2":  "18pt",
+                       "tableRowEven":  "#DBE5F1",
+                       "tableRowOdd":  "#8290C7",
+                       "MainColor":  "#0066A2",
+                       "h4":  "12pt",
+                       "h3":  "16pt",
+                       "h1":  "24pt"
+                   },
+    "CIConfig":  [
+                     {
+                         "CIGroup":  "vSphere",
+                         "Description":  "vSphere health",
+                         "Types":  [
+                                       {
+                                           "Type":  "vCenter",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "VAMI username",
+                                                              "VAMI password",
+                                                              "Thresholds"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "NSX",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "vCenter hostname",
+                                                              "vCenter username",
+                                                              "vCenter password",
+                                                              "Thresholds"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "vRA",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Tenant",
+                                                              "VAMI root password",
+                                                              "Thresholds"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "vRO",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "VAMI root password",
+                                                              "Thresholds"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "Hyperic",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Port",
+                                                              "VAMI root password"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "VCM",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "vROPs",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "vCD",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       }
+                                   ]
+                     },
+                     {
+                         "CIGroup":  "Compute",
+                         "Description":  "Compute resources health",
+                         "Types":  [
+                                       {
+                                           "Type":  "UCS-Fabric",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "UCS-Standalone",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "Dell",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "IBM",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "HP",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "BullSequana",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "Bullion",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       }
+                                   ]
+                     },
+                     {
+                         "CIGroup":  "Storage",
+                         "Description":  "Storage resources health",
+                         "Types":  [
+                                       {
+                                           "Type":  "VPLEX",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "VNX",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Thresholds"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "Unity",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Thresholds"
+                                                          ]
+                                       }
+                                   ]
+                     },
+                     {
+                         "CIGroup":  "Network",
+                         "Description":  "Network resources health",
+                         "Types":  [
+                                       {
+                                           "Type":  "CiscoMDS",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Disabled ports"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "CiscoNexus",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Disabled ports"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "JuniperSwitch",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       }
+                                   ]
+                     },
+                     {
+                         "CIGroup":  "Backup",
+                         "Description":  "Backup infrastructure health",
+                         "Types":  [
+                                       {
+                                           "Type":  "DataDomain",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Thresholds"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "Avamar",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Thresholds"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "AvamarProxyVMs",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       }
+                                   ]
+                     },
+                     {
+                         "CIGroup":  "Servers",
+                         "Description":  "Operating systems health",
+                         "Types":  [
+                                       {
+                                           "Type":  "WindowsServer",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Thresholds",
+                                                              "Services list"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "LinuxServer",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Thresholds"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "ScheduledTasks",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       }
+                                   ]
+                     },
+                     {
+                         "CIGroup":  "Services",
+                         "Description":  "Services and applications health ",
+                         "Types":  [
+                                       {
+                                           "Type":  "ePO",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Proxy address"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "ActiveDirectory",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Domain name"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "MSSQL",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password"
+                                                          ]
+                                       },
+                                       {
+                                           "Type":  "ADGroups",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName",
+                                                              "UserName",
+                                                              "Password",
+                                                              "Domain name",
+                                                              "SearchBase (CN)"
+                                                          ]
+                                       }
+                                   ]
+                     },
+                     {
+                         "CIGroup":  "Certificates",
+                         "Description":  "Certificates expiration ",
+                         "Types":  [
+                                       {
+                                           "Type":  "Certificates",
+                                           "Properties":  [
+                                                              "Name",
+                                                              "HostName"
+                                                          ]
+                                       }
+                                   ]
+                     }
+                 ]
+}
