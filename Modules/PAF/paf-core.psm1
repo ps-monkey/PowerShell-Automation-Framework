@@ -102,7 +102,6 @@ If ($ReportFileName -match "\.html$|\.htm$") {
 
 #Load PSExcel module if filetype is XLSX
 If ($ReportFileName -match "\.xlsx$") {
-	If (-Not (Get-Module).Name.Contains("PSExcel")) { Import-Module ($global:ModulesFolder + "\PSExcel") -ea "Stop" }
 	If (-Not (Get-Module).Name.Contains("paf-xlsx")) { Import-Module $($global:ModulesFolder + "\PAF\paf-xlsx.psm1") -ea "Stop" -WarningAction SilentlyContinue }
 	}
 
