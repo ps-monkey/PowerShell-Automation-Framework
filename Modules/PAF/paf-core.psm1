@@ -36,16 +36,16 @@ Else { Return "" }
 }
 
 #Define modules location
-$global:ModulesFolder = "$((Get-Item $global:PAFScriptPath).parent.FullName)\Modules"
+$PAFModulesFolder = "$PAFFolder\Modules"
 
 #Load status images
-. $("$global:ModulesFolder\PAF\Images.ps1") -ea "Stop"
+. $("$PAFModulesFolder\PAF\Images.ps1") -ea "Stop"
 
 #Load configuration
 Try { $global:Config = Decrypt -Path "config.pafc" }
 Catch { Write-host "Configuration cannot be loaded!" -foregroundcolor "red" }
 
-$DefaultProperties = Get-Content -Path "$((Get-Item $global:PAFScriptPath).parent.FullName)\defaults.pafp" | ConvertFrom-Json
+$DefaultProperties = Get-Content -Path "$PAFFolder\defaults.pafp" | ConvertFrom-Json
 
 #Load Properties
 #load html styles
@@ -63,7 +63,7 @@ $Resources = ($global:environment.PSObject.Properties | ? {($_.Value).count -gt 
 #Add secured passwords to environment
 ForEach ($Resource in $Resources) {
 	ForEach ($System in $global:environment.$Resource | ? {!$_.Label}) {
-		#ADdd secure credentials
+		#Add secure credentials
 		If ($System.Password) {
 			$SecurePassword = ConvertTo-SecureString $System.Password -AsPlainText -Force
 			$System | Add-Member noteproperty "SecurePassword" -value $SecurePassword
@@ -97,12 +97,12 @@ Write-host "Loading modules for defined in configuration" -foregroundcolor "yell
 If ($ReportFileName -match "\.html$|\.htm$") {
 	[void][Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')
 	[void][Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms.DataVisualization')
-	If (-Not (Get-Module).Name.Contains("paf-html")) { Import-Module $($global:ModulesFolder + "\PAF\paf-html.psm1") -WarningAction SilentlyContinue -ea "Stop" }
+	If (-Not (Get-Module).Name.Contains("paf-html")) { Import-Module $($PAFModulesFolder + "\PAF\paf-html.psm1") -WarningAction SilentlyContinue -ea "Stop" }
 	}
 
 #Load PSExcel module if filetype is XLSX
 If ($ReportFileName -match "\.xlsx$") {
-	If (-Not (Get-Module).Name.Contains("paf-xlsx")) { Import-Module $($global:ModulesFolder + "\PAF\paf-xlsx.psm1") -ea "Stop" -WarningAction SilentlyContinue }
+	If (-Not (Get-Module).Name.Contains("paf-xlsx")) { Import-Module $($PAFModulesFolder + "\PAF\paf-xlsx.psm1") -ea "Stop" -WarningAction SilentlyContinue }
 	}
 
 ForEach ($Module in $Modules) {
@@ -112,9 +112,9 @@ ForEach ($Module in $Modules) {
 
 Function PAF-SaveFile {
 	param ( 
-		[Parameter(Mandatory=$false)][string] $File = $ReportFilePath,
 		[Parameter(Mandatory=$true)] $Content,
-		[Parameter(Mandatory=$false)][string] $Delimeter = ",",
+		[Parameter(Mandatory=$false)][string] $File = $ReportFilePath,
+		[Parameter(Mandatory=$false)][string] $Delimiter = ",",
 		[Parameter(Mandatory=$false)][Switch] $Raw
 		)
 $Path = Split-Path -Path $File
@@ -135,7 +135,7 @@ If (!$Raw) {
                 }
 			break 
 			}
-		"\.csv$" { $Content | Export-Csv -NoTypeInformation -Delimiter $Delimeter -Force; break  }
+		"\.csv$" { $Content | Export-Csv -NoTypeInformation -Delimiter $Delimiter -Force; break  }
 		default { $Content | Out-File $File -Force ; break }
 		}
 	}
@@ -182,7 +182,7 @@ If ($Transport -eq "vRealize Orchestrator") {
 		If (!$Attachment) { $Attachment = $ReportFilePath }
 		$AttachmentFileName = Split-Path -Path $Attachment -Leaf
 		
-		Add-Type -Path $($global:ModulesFolder + "\WinSCP\WinSCPnet.dll")
+		Add-Type -Path $($PAFModulesFolder + "\WinSCP\WinSCPnet.dll")
 		$Options = New-Object WinSCP.SessionOptions -Property @{
 			Protocol = [WinSCP.Protocol]::Sftp
 			HostName = $EmailObj.vROHostName
@@ -202,12 +202,12 @@ If ($Transport -eq "vRealize Orchestrator") {
 		$WinSCPSession.PutFiles($Attachment, $RemotePath,$false,$TransferOptions) | out-null
 		}
 	
-	If (-Not (Get-Module).Name.Contains("PowervRO")) { Import-Module ($global:ModulesFolder + "\PowervRO") -ea "Stop"}
+	If (-Not (Get-Module).Name.Contains("PowervRO")) { Import-Module ($PAFModulesFolder + "\PowervRO") -ea "Stop"}
 	$SecurePassword = ConvertTo-SecureString $EmailObj.vROPassword -AsPlainText -Force
 	Connect-vROServer -Server $EmailObj.vROHostName -Username $EmailObj.vROUser -Password $SecurePassword -IgnoreCertRequirements -SslProtocol "tls"  -ea "Stop" | out-null
 	$id = (Get-vROWorkflow -Name 'Send email with attachment').ID
 	If (!$id) {
-		$path  = $global:ModulesFolder + "\PowervRO\email.workflow"
+		$path  = $PAFModulesFolder + "\PowervRO\email.workflow"
 		$Category = (Get-vROCategory -CategoryType "WorkflowCategory" | ? {$_.Name -eq "Mail"})[0]
 		Import-vROWorkflow -CategoryId $Category.ID -File $path -Confirm:$false
 		Sleep 10
@@ -242,4 +242,28 @@ $tcpClient = New-Object Net.Sockets.TcpClient
 Try { $tcpClient.Connect("$Address", $Port); $true }
 Catch { $false }
 Finally { $tcpClient.Dispose() }
+}
+
+#From http://stackoverflow.com/questions/297213/translate-a-column-index-into-an-excel-column-name
+Function Get-ExcelColumn {
+param([int]$ColumnIndex)
+
+[string]$Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+$ColumnIndex -= 1
+[int]$Quotient = [math]::floor($ColumnIndex / 26)
+
+If ($Quotient -gt 0) { ( Get-ExcelColumn -ColumnIndex $Quotient ) + $Chars[$ColumnIndex % 26] }
+Else { $Chars[$ColumnIndex % 26] }
+}
+
+Function ConvertTo-ExcelCoordinate {
+[OutputType([system.string])]
+[cmdletbinding()]
+param(
+	[Parameter(Mandatory=$true)][int]$Row,
+	[Parameter(Mandatory=$true)][int]$Column
+	)
+
+$ColumnIndex = Get-ExcelColumn $Column
+"$ColumnIndex$Row"
 }
