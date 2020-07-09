@@ -1,4 +1,4 @@
-add-type -AssemblyName System.Drawing
+Add-Type -AssemblyName System.Drawing
 
 ##############Load image binaries##############
 . $("$PSScriptRoot\Images.ps1") -ea "Stop"
@@ -68,9 +68,9 @@ h4, .h3 { font-size: 12pt; font-weight: bold; margin:0; display: inline-block; v
 .Opposite { display: flex; justify-content: space-between; }
 .exp_coll { font-size: 8pt; font-weight: bold; color:#0000EE; vertical-align: bottom; }
 .exp_coll_e { font-size: 8pt; font-weight: bold; color:#551A8B; vertical-align: bottom; }
-.Error {font-weight: bold; color:red;}
-.Warning {font-weight: bold; color:orange;}
-.Question {font-weight: bold; color:gray}
+.Error { font-weight: bold; color:red;}
+.Warning { font-weight: bold; color:orange;}
+.Question { font-weight: bold; color:gray}
 .Info {font-weight: bold; color:blue}
 .Ok {font-weight: bold; color:green}
 .Logo_Img { background-image:url('data:image/png;base64,$Logo_Img_src'); width:89px; height:30px; no-repeat; display: inline-block; }
@@ -427,7 +427,7 @@ Function PAF-HTML-Table-L0 {
 		[Parameter(Mandatory=$false)][Switch] $ShowState
 		)
 
-$css_code = ".Table-L0, .Table-L0 tr, .Table-L0 td {border: 0px; padding: 5px; }
+$css_code = ".Table-L0, .Table-L0 tr, .Table-L0 td { border: 0px; padding: 5px; }
 .Table-L0-Title { text-align: center; }"
 PAF-HTML-Headers -CSS -Code $css_code
 
@@ -586,13 +586,13 @@ If ($Expanded) { $ShowHide = "ShowHideE('$ID',this);return false;" }
 Else { $ShowHide = "ShowHide('$ID',this);return false;" }
 
 #exit with error
-If ($Error) { Return "`n<table$TableWidth class='Table-Status'><tr><th>$Error $Error_img_i</th></tr></table>" }
+If ($Error) { Return "`n<table$TableWidth class='Table-Regular'><tr><th>$Error $Error_img_i</th></tr></table>" }
 
 If ($Data) {
 	$UnknownState = $false
 	
 	ForEach ($line in $($Data -split "</tr> <tr>") | Select-Object -Skip 1) { If ($line -notmatch "Error_img|Warning_img|Ok_img|Info_img") { $UnknownState = $true } }
-	$Table_L2_State = PAF-HTML-Table-Status-Get-State -StateList $Data -UnknownState $UnknownState
+	$Table_L2_State = PAF-HTML-Table-Get-State -StateList $Data -UnknownState $UnknownState
 	
 	If ($Expandable) {
 		$Result_Header = "`n<div$TableWidth class='Table-L2'><span class='Opposite'><span style='width:75px;text-align:right'>$Table_L2_State </span><span> $($Title):</span></span><span>$(PAF-HTML-Hyperlink -Function $ShowHide)</span></div><hr>"
@@ -606,7 +606,7 @@ Else {
 	$Result_Header = "`n<div class='Opposite'><span class='Table-L2'><span style='width:75px;text-align:right'>$($EmptyObjectState -replace ""'>"", ""_s'>"") </span><span> $($Title):</span></span><span>$(PAF-HTML-Hyperlink -Function $ShowHide)</span></div><hr>"
 	#Threat all empty object or state as OK
 	If (!$EmptyObjectMessage) { $EmptyObjectMessage = "No issues found" }
-	$Result_Header += "`n<table$TableWidth class='Table-Status' id='$ID' style='display:none;'><tr><th>$($EmptyObjectState -replace ""'>"", ""_i'>"") $EmptyObjectMessage</th></tr></table>"
+	$Result_Header += "`n<table$TableWidth class='Table-Regular' id='$ID' style='display:none;'><tr><th>$($EmptyObjectState -replace ""'>"", ""_i'>"") $EmptyObjectMessage</th></tr></table>"
 	}
 
 Return "$Result_Header"
@@ -626,7 +626,7 @@ If ($Drawline) {
 Return "$HTML`n"
 }
 
-Function PAF-HTML-Table-Status-Get-State {
+Function PAF-HTML-Table-Get-State {
 	param ( 
 		[Parameter(Mandatory=$true)][string[]] $StateList,
 		[Parameter(Mandatory=$true)][bool] $UnknownState
@@ -790,7 +790,7 @@ If (!$FormatedTable) {
 			ForEach ($property in $obj.PSObject.properties.name) { $hashtable[$property] = $obj.$property }
 			$Data = $Data -ne $obj
 			$Data += New-Object -TypeName PSObject -Property $Hashtable
-			}
+			} 
 		}
 
 	$Params = @{}
