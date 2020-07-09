@@ -1,5 +1,16 @@
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
+#################################################################################################################################################################################################
+#Check if run as administrator
+If (!(([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
+[System.Windows.Forms.MessageBox]::Show(("PAFConfig must be ran with administrative permissions.`nPlease run Powershelll as Administrator"),"PAF Configuration",0,16) | out-null
+Exit
+}
+#Check PS compatibility
+If ($PSVersionTable.PSVersion.Major -lt 5) {
+[System.Windows.Forms.MessageBox]::Show(("PAF requires Powershell 5.1 or higher to run`nPlease upgrade your Powershell"),"PAF Configuration",0,16) | out-null
+Exit
+}
 
 #Enable TLS12
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -20,14 +31,6 @@ public class TrustAllCertsPolicy : ICertificatePolicy {
 }
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
-
-
-#################################################################################################################################################################################################
-#Check if run as administrator
-If (!(([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
-[System.Windows.Forms.MessageBox]::Show(("PAFConfig must be ran with administrative permissions.`nPlease use ""Run As Administrator"" context menu to run PAFConfig"),"PAF Configuration",0,16) | out-null
-Exit
-}
 
 #################################################################################################################################################################################################
 #Embedded images
@@ -524,18 +527,23 @@ namespace CheckComboBox {
 
 #General functions
 Function Encrypt {
-	param ( [Parameter(Mandatory=$true)] $Variable )
+	param ( 
+		[Parameter(Mandatory=$true)] $Variable,
+		[Parameter(Mandatory=$false)] $Thumbprint
+	)
+If (!$Thumbprint) { $Thumbprint = Get-Content "ssl.thumb"  -ea "SilentlyContinue" }
 $Content = $Variable | ConvertTo-Json -Depth 10 -Compress
-$Thumbprint = Get-Content "ssl.thumb"  -ea "SilentlyContinue"
-Return Protect-CmsMessage -Content $Content -to $Thumbprint
+Return Protect-CmsMessage -Content $Content -To $Thumbprint
 }
 
 Function Decrypt {
-	param ( [Parameter(Mandatory=$true)] $Path )
+	param (
+		[Parameter(Mandatory=$true)] $Path
+		)
 Try {
 	If (Get-Content -Path $Path) { Return Get-Content -Path $Path | Unprotect-CmsMessage | ConvertFrom-Json }
 	Else {
-		$env = New-Object psobject
+		$env = New-Object PSCustomObject
 		Return $env
 		}
 	}
@@ -616,6 +624,17 @@ Else {
 
 #Load CI Editor
 . $("$PSScriptRoot\Modules\PAF\CIEditor.ps1") -ea "Stop"
+
+#Set PAF path in registry
+Function PAFConfig-SetPath {
+$registryPath = "HKLM:\SOFTWARE\PAF"
+If (!(Test-Path $registryPath)) {
+	New-Item -Path $registryPath -Force | Out-Null
+	New-ItemProperty -Path $registryPath -Name "Path" -Value $PSScriptRoot -Force | Out-Null
+	}
+Else { New-ItemProperty -Path $registryPath -Name "Path" -Value $PSScriptRoot -Force | Out-Null } #Update value if it already exists
+
+}
 
 #Config management functions
 Function PAFConfig-SetMailTransport {
@@ -1131,7 +1150,7 @@ $ScheduleForm_btn_cancel.Text = "Cancel"
 $ScheduleForm_btn_cancel.Width = 100
 $ScheduleForm_btn_cancel.Height = 30
 $ScheduleForm_btn_cancel.Location = New-Object System.Drawing.Point(460,415)
-$ScheduleForm_btn_cancel.Add_Click({ $ScheduleForm.close() })
+$ScheduleForm_btn_cancel.Add_Click({ $ScheduleForm.Close() })
 $ScheduleForm.Controls.Add($ScheduleForm_btn_cancel)
 
 
@@ -1287,7 +1306,7 @@ Catch { [System.Windows.Forms.MessageBox]::Show(("Something went wrong during sc
 
 Function PAFConfig-About {
 $AboutForm = New-Object system.Windows.Forms.Form
-$AboutForm.ClientSize = '380,220'
+$AboutForm.ClientSize = '380,140'
 $AboutForm.Text = "About"
 $AboutForm.Icon  = [System.Drawing.Icon]::FromHandle((New-Object System.Drawing.Bitmap -Argument $IconStream).GetHIcon())
 $AboutForm.TopMost = $true
@@ -1295,21 +1314,12 @@ $AboutForm.FormBorderStyle = "FixedSingle"
 $AboutForm.MaximizeBox = $false
 $AboutForm.StartPosition = "centerscreen"
 
-$pictureBox = new-object Windows.Forms.PictureBox
-$pictureBox.Width = 240
-$pictureBox.Height = 80 
-$pictureBox.Location = New-Object System.Drawing.Size(70,20) 
-$pictureBox.Image = [System.Convert]::FromBase64String($LogoImg)
-$AboutForm.Controls.Add($pictureBox)
-
-
-
 $Label = New-Object system.Windows.Forms.Label
-$Label.Text = "PowerShell Automation Framework configurator`nVersion 1.0.0`n $([char]0x00A9) Copyright 2020, Aleksandr Dyakonov. All rights reserved."
+$Label.Text = "PowerShell Automation Framework configurator`nVersion 6.0.0`n $([char]0x00A9) Copyright 2020, Aleksandr Dyakonov. All rights reserved."
 #$Label.AutoSize = $true
 $Label.Width = 360
 $Label.Height = 70
-$Label.Location = New-Object System.Drawing.Point(0,110)
+$Label.Location = New-Object System.Drawing.Point(0,10)
 $label.TextAlign = 'MiddleCenter'
 $AboutForm.Controls.Add($Label)
 
@@ -1317,17 +1327,13 @@ $OKButton = New-Object system.Windows.Forms.Button
 $OKButton.Text = "Ok"
 $OKButton.Width = 80
 $OKButton.Height = 20
-$OKButton.Location = New-Object System.Drawing.Point(150,180)
+$OKButton.Location = New-Object System.Drawing.Point(150,100)
 $OKButton.Add_Click({ $AboutForm.Close() })
 $AboutForm.Controls.Add($OKButton)
 
 $AboutForm.ShowDialog() | out-null 
 
 
-}
-
-Function PAFConfig-Help {
-[System.Windows.Forms.MessageBox]::Show("Yet not ready! Add CHM file here!")
 }
 
 Function PAFConfig-LoadThumbprint {
@@ -1665,11 +1671,10 @@ Function PAFConfig-ManageSSLForm {
 #Load PSPKI Module
 If (-Not (Get-Module).Name.Contains("PSPKI-lite")) { Import-Module $($PSScriptRoot + "\Modules\PSPKI\PSPKI-lite.psm1") -ea "Stop" -WarningAction SilentlyContinue}
 
-$global:SSLCertList = @()
+$SSLCertList = @()
 ForEach ($cert in (Get-Item -Path "Cert:\LocalMachine\My\*") | ? { $_.EnhancedKeyUsageList.FriendlyName -contains "Document Encryption"} | Select FriendlyName,Thumbprint) {
-	$global:SSLCertList += $cert
+	$SSLCertList += $cert
 	}
-#$global:SSLCertList = (Get-Item -Path "Cert:\LocalMachine\My\*") | Select FriendlyName,Thumbprint
 
 $SSLSelectForm = New-Object System.Windows.Forms.Form
 $SSLSelectForm.Text = "SSL certificate management"
@@ -1690,13 +1695,17 @@ $SSLSelectForm_GridView.AutoSizeColumnsMode = 'fill'
 $SSLSelectForm_GridView.ColumnHeadersVisible = $true
 $SSLSelectForm_GridView.SelectionMode = 'FullRowSelect'
 $SSLSelectForm_GridView.ReadOnly = $true
+$SSLSelectForm_GridView.MultiSelect = $false
 $SSLSelectForm_GridView.Columns[0].Name = "Friendly name"
 $SSLSelectForm_GridView.Columns[0].Width = 180 
 $SSLSelectForm_GridView.Columns[1].Name = "Thumbprint"
-ForEach ($row in $global:SSLCertList){ $SSLSelectForm_GridView.Rows.Add($row.FriendlyName,$row.Thumbprint) | out-null }
-If ($global:SSLCertList.count -lt 10) { $global:SSLCertList.count..8 | % { $SSLSelectForm_GridView.Rows.Add("","") | out-null } }
-$SSLSelectForm_GridView.Add_SelectionChanged({ PAFConfig-ManageSSLForm_GridView_SelectionChanged })
+ForEach ($row in $SSLCertList){ $SSLSelectForm_GridView.Rows.Add($row.FriendlyName,$row.Thumbprint) | out-null }
+If ($SSLCertList.count -lt 10) { $SSLCertList.count..8 | % { $SSLSelectForm_GridView.Rows.Add("","") | out-null } }
 $SSLSelectForm.Controls.Add($SSLSelectForm_GridView)
+
+Try { $index = ($SSLSelectForm_GridView.Rows.Cells | ? {$_.ColumnIndex -eq 1} | ? {$_.value -eq $global:SSLThumbprint}).RowIndex[0] }
+Catch { $index = 0 }
+$SSLSelectForm_GridView.Rows[$index].Selected = $true
 
 #Set vertical offset
 $h = 255
@@ -1734,34 +1743,35 @@ $SSLSelectForm_btn_ok.Add_Click({ PAFConfig-ManageSSLForm_SelectCertificate; $SS
 $SSLSelectForm.Controls.Add($SSLSelectForm_btn_ok)
 
 $SSLSelectForm_btn_cancel = New-Object system.Windows.Forms.Button
-$SSLSelectForm_btn_cancel.Text = "Close"
+$SSLSelectForm_btn_cancel.Text = "Cancel"
 $SSLSelectForm_btn_cancel.Width = 100
 $SSLSelectForm_btn_cancel.Height = 30
 $SSLSelectForm_btn_cancel.Location = New-Object System.Drawing.Point(460,$h)
-$SSLSelectForm_btn_cancel.Add_Click({ $global:SSLThumbprint= ""; $SSLSelectForm.Close() })
+$SSLSelectForm_btn_cancel.Add_Click({ $SSLSelectForm.Close() })
 $SSLSelectForm.Controls.Add($SSLSelectForm_btn_cancel)
 
 [void]$SSLSelectForm.ShowDialog()
-
 }
 
 Function PAFConfig-ManageSSLForm_SelectCertificate {
-$global:SSLThumbprint =  $global:SSLThumbprint_Selected
-$global:SSLThumbprint | Out-File $($PSScriptRoot + "\ssl.thumb") -Force; 
-$SelectedKeyPath.ForeColor = "black"
+$global:SSLThumbprint =  $SSLSelectForm_GridView.SelectedRows[0].Cells[1].Value
 $SelectedKeyPath.Text = "SSL Thumbprint: $($global:SSLThumbprint)"
-$FileMenu_New.Enabled = $true
-$FileMenu_Open.Enabled = $true
-$FileMenu_Save.Enabled = $true
-$FileMenu_SaveAs.Enabled = $true
-$NewEnv.Enabled = $true
-$OpenEnv.Enabled = $true
-$EditEnv.Enabled = $true
+$global:SSLThumbprint | Out-File $($PSScriptRoot + "\ssl.thumb") -Force; 
+If ($global:SSLThumbprint) {
+	$SelectedKeyPath.ForeColor = "black"
+	$FileMenu_New.Enabled = $true
+	$FileMenu_Open.Enabled = $true
+	$FileMenu_Save.Enabled = $true
+	$FileMenu_SaveAs.Enabled = $true
+	$NewEnv.Enabled = $true
+	$OpenEnv.Enabled = $true
+	$EditEnv.Enabled = $true
+	}
 }
 
 Function PAFConfig-ManageSSLForm_DeleteCertificate {
 If ([System.Windows.Forms.MessageBox]::Show(("Are you sure you want to delete selected SSL certificate?"),"PAF Configuration",4,48) -eq "Yes") { 
-	Get-ChildItem $("Cert:\LocalMachine\My\" + $global:SSLThumbprint_Selected) | Remove-Item
+	Get-ChildItem $("Cert:\LocalMachine\My\" + $SSLSelectForm_GridView.SelectedRows[0].Cells[1].Value) | Remove-Item
 	PAFConfig-ManageSSLForm_GridView_Refresh
 	}
 }
@@ -1770,42 +1780,18 @@ Function PAFConfig-ManageSSLForm_GridView_Refresh {
 Sleep 1
 $SSLSelectForm_GridView.Rows.Clear()
 $SSLSelectForm_GridView.Refresh()
-$global:SSLCertList = @()
-ForEach ($cert in (Get-Item -Path "Cert:\LocalMachine\My\*") | ? { $_.EnhancedKeyUsageList.FriendlyName -contains "Document Encryption"} | Select FriendlyName,Thumbprint) { $global:SSLCertList += $cert }
+$NewSSLCertList = @()
+ForEach ($cert in (Get-Item -Path "Cert:\LocalMachine\My\*") | ? { $_.EnhancedKeyUsageList.FriendlyName -contains "Document Encryption"} | Select FriendlyName,Thumbprint) { $NewSSLCertList += $cert }
 
-ForEach ($row in $global:SSLCertList){ $SSLSelectForm_GridView.Rows.Add($row.FriendlyName,$row.Thumbprint) | out-null }
-If ($global:SSLCertList.count -lt 10) { $global:SSLCertList.count..8 | % { $SSLSelectForm_GridView.Rows.Add("","") | out-null } }
+ForEach ($row in $NewSSLCertList){ $SSLSelectForm_GridView.Rows.Add($row.FriendlyName,$row.Thumbprint) | out-null }
+If ($NewSSLCertList.count -lt 10) { $NewSSLCertList.count..8 | % { $SSLSelectForm_GridView.Rows.Add("","") | out-null } }
+
+Try { $index = ($SSLSelectForm_GridView.Rows.Cells | ? {$_.ColumnIndex -eq 1} | ? {$_.value -eq $global:SSLThumbprint}).RowIndex[0] }
+Catch { $index = 0 }
+$SSLSelectForm_GridView.Rows[$index].Selected = $true
+
+
 $SSLSelectForm_GridView.Refresh()
-}
-
-Function PAFConfig-ManageSSLForm_GridView_SelectionChanged {
-If ($global:SSLCertList) {
-	If ($SSLSelectForm_GridView.CurrentCell.RowIndex -gt $($global:SSLCertList.count - 1) ) {
-		$SSLSelectForm_GridView.Rows[$SSLSelectForm_GridView.CurrentCell.RowIndex].Selected = $false
-		$SSLSelectForm_GridView.Rows[$global:RowIndex].Selected = $true
-		$SSLSelectForm_btn_ok.Enabled = $false
-		$SSLSelectForm_btn_delete.Enabled = $false
-		}
-	Else {
-		$global:RowIndex = $SSLSelectForm_GridView.CurrentCell.RowIndex
-		$SSLSelectForm_btn_ok.Enabled = $true
-		$SSLSelectForm_btn_delete.Enabled = $true
-		$global:SSLThumbprint_Selected =  $SSLSelectForm_GridView.Rows[$global:RowIndex].Cells[1].value
-		}
-	
-	If ($global:SSLCertList.count -eq 1) {
-		$global:RowIndex = 0
-		$SSLSelectForm_btn_ok.Enabled = $true
-		$SSLSelectForm_btn_delete.Enabled = $true
-		$global:SSLThumbprint_Selected =  $SSLSelectForm_GridView.Rows[$global:RowIndex].Cells[1].value
-	}
-}
-Else {
-	$SSLSelectForm_GridView.ClearSelection()
-	$SSLSelectForm_btn_ok.Enabled = $false
-	$SSLSelectForm_btn_delete.Enabled = $false
-}
-	
 }
 
 #####New automation script form here
@@ -1927,8 +1913,8 @@ Function PAFConfig-NewPAFScript {
 $Path = Split-Path -Path $FileName
 If(!(Test-Path $Path)) { New-Item -ItemType Directory -Force -Path $Path | out-null }
 $Content = '##############Load core functions##############
-$global:PAFScriptPath = $PSScriptRoot
-Import-Module "$((Get-Item $global:PAFScriptPath).parent.FullName)\Modules\PAF\paf-core.psm1" -WarningAction SilentlyContinue
+$PAFFolder = (Get-ItemProperty -Path HKLM:\SOFTWARE\PAF).Path
+Import-Module "$PAFFolder\Modules\PAF\paf-core.psm1" -WarningAction SilentlyContinue
 
 #Define script custom parameters
 #Put you script variables here
@@ -2712,15 +2698,9 @@ $ReEncryptForm.Controls.Add($ReEncryptForm_btn_cancel)
 
 Function PAFConfig-ReEncryptForm_ReEncrypt {
 If ($FileLocation.Text) {
-	$SSLSoruceCertificate = Get-Item -Path "Cert:\LocalMachine\My\$($ReEncryptForm_Source.SelectedItem)"
-	$SourceKey =  [Convert]::FromBase64String(($SSLSoruceCertificate.PrivateKey.ToXmlString($false) -replace ".*<Modulus>" -replace "</Modulus>.*"))[0..31]
-
-	$SSLTargetCertificate = Get-Item -Path "Cert:\LocalMachine\My\$($ReEncryptForm_Target.SelectedItem)"
-	$TargetKey =  [Convert]::FromBase64String(($SSLTargetCertificate.PrivateKey.ToXmlString($false) -replace ".*<Modulus>" -replace "</Modulus>.*"))[0..31]
-
-	$tmp = Decrypt -Path $($FileLocation.Text) -Key $SourceKey
+	$tmp = Decrypt -Path $($FileLocation.Text)
 	If ($tmp) {
-		Encrypt -Variable $tmp -Key $TargetKey | Set-Content -Path $FileLocation.Text
+		Encrypt -Variable $tmp -Thumbprint $ReEncryptForm_Target.SelectedItem | Set-Content -Path $FileLocation.Text
 		[System.Windows.Forms.MessageBox]::Show(("Done"),"PAF Configuration") | out-null
 		$ReEncryptForm.Close()
 		}
@@ -3413,6 +3393,8 @@ $global:ConfFormUpdated = $false
 #Load security key
 
 $global:SSLThumbprint = PAFConfig-LoadThumbprint
+
+PAFConfig-SetPath
 
 #[System.Windows.Forms.MessageBox]::Show($global:SSLThumbprint,"PAF Configuration") | out-null
 [void]$ConfForm.ShowDialog()
